@@ -7,14 +7,15 @@ main:
 
 	call	clear_screen
 game_loop:
+	push	word [snake_pos]
 	mov	ah, 0x01	; check if key available
 	int	0x16
 	jz	done_clear	; if not, move on
 	mov	ah, 0x00	; if the was a key, remove it from buffer
 	int	0x16
+	jmp	update_snakepos
 done_clear:
-	mov	ah, [last_move]
-	push	word [snake_pos] ; save the snake head pos for later
+	mov	al, [last_move]
 update_snakepos:
 	cmp	al, 'w'	
 	je	up
