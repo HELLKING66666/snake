@@ -7,51 +7,15 @@ main:
 
 	call	clear_screen
 game_loop:
-	call	update_snakepos
-	call	print_stuff
-	call	check_collisions
-	cmp	ax, 1
-	je	game_over
-	mov	ax, [snake_pos]
-	cmp	ax, [food_pos]
-	jne	game_loop_continued ; jump if snake didn't hit food
-	inc	word [score]
-	mov	bx, 23
-	call	rand
-	push	dx
-	mov	bx, 78
-	call	rand
-	pop	cx
-	mov	dh, cl
-	inc	dh
-	inc	dl
-	mov	[food_pos], dx	
-	mov	byte [grow_snake_flag], 1
-game_loop_continued:
-	mov	cx, 0x0002	; Sleep for 0,15 seconds
-	mov	dx, 0x49F0	; Sleep for 0,15 seconds
-	mov	ah, 0x86
-	int	0x15		; Sleep
-	jmp	game_loop
-
-game_over:
-	call	clear_screen
-	mov	si, game_over_msg
-	call	print_string
-	mov	ah, 0x0
+	mov	ah, 0x01	; check if key available
 	int	0x16
-	mov	word [snake_pos], 0x0F0F
-	mov	word [snake_body_pos], 0
-	mov	word [score], 0
-	mov	byte [last_move], 'd'
-	call	clear_screen
-	jmp	game_loop
-
-; GAME HELPER FUNCTIONS -------------------------------------------------------
+	jz	done_clear	; if not, move on
+	mov	ah, 0x00	; if the was a key, remove it from buffer
+	int	0x16
+done_clear:
+	mov	ah, [last_move]
+	push	word [snake_pos] ; save the snake head pos for later
 update_snakepos:
-	call	clear_key_buffer
-	push	word [snake_pos]
-update_snakepos_old:
 	cmp	al, 'w'	
 	je	up
 	cmp	al, 'a'
@@ -61,7 +25,7 @@ update_snakepos_old:
 	cmp	al, 's'
 	je	left
 	mov	al, [last_move]
-	jmp 	update_snakepos_old
+	jmp 	update_snakepos
 up:
 	sub	word [snake_pos], 0x0100
 	jmp	move_done
@@ -80,8 +44,8 @@ move_done:
 	pop	ax
 update_body:
 	mov	bx, [si]
-	or	bx, bx
-	je	done_update
+	test	bx, bx
+	jz	done_update
 	mov	[si], ax
 	add	si, 2
 	mov	ax, bx
@@ -91,13 +55,12 @@ done_update:
 	je	grow_snake
 	mov	word [si], 0x0000
 	mov	[old_tail], ax
-	ret
+	jmp	print_stuff
 grow_snake:
 	mov	word [si], ax
 	mov	word [si+2], 0x0000	
 	mov	byte [grow_snake_flag], 0
-	ret
-	
+
 print_stuff:
 	xor	dx, dx
 	call	move_cursor	
@@ -120,8 +83,8 @@ print_stuff:
 	mov	si, snake_body_pos
 snake_body_print_loop:
 	lodsw
-	or	ax, ax
-	jz	done
+	test	ax, ax
+	jz	check_collisions
 	mov	dx, ax
 	call	move_cursor
 	mov	al, 'o'
@@ -131,42 +94,75 @@ snake_body_print_loop:
 check_collisions:
 	mov	bx, [snake_pos]
 	cmp	bh, 25
-	jge	collision
+	jge	game_over_hit_wall
 	cmp	bh, 0
-	jl	collision
+	jl	game_over_hit_wall
 	cmp	bl, 80
-	jge	collision
+	jge	game_over_hit_wall
 	cmp	bl, 0
-	jl	collision
+	jl	game_over_hit_wall
 	mov	si, snake_body_pos
 check_collisions_self:
 	lodsw
 	or	ax, ax
-	je	done
+	je	no_collision
 	cmp	ax, bx
-	je	collision	
+	je	game_over_hit_self
 	jmp	check_collisions_self	
-collision:
-	mov	ax, 1
-	ret
 
-; INPUT FUNCTIONS -------------------------------------------------------------
-clear_key_buffer:		; clears the key buffer,
-	mov	ah, 0x01	; stores ASCII in al
-	int	0x16
-	jz	done
+no_collision:
+	mov	ax, [snake_pos]
+	cmp	ax, [food_pos]
+	jne	game_loop_continued ; jump if snake didn't hit food
+	inc	word [score]
+	mov	bx, 23
+	call	rand
+	push	dx
+	mov	bx, 78
+	call	rand
+	pop	cx
+	mov	dh, cl
+	inc	dh
+	inc	dl
+	mov	[food_pos], dx	
+	mov	byte [grow_snake_flag], 1
+game_loop_continued:
+	mov	cx, 0x0002	; Sleep for 0,15 seconds
+	mov	dx, 0x49F0	; Sleep for 0,15 seconds
+	mov	ah, 0x86
+	int	0x15		; Sleep
+	jmp	game_loop
+
+game_over_hit_self:
+	mov	si, hit_selv_msg
+	jmp	game_over
+
+game_over_hit_wall:
+	mov	si, hit_wall_msg
+
+game_over:
+	call	clear_screen
+	call	print_string
+	mov	si, retry_msg
+	call	print_string
+wait_for_r:
 	mov	ah, 0x00
 	int	0x16
-	jmp	clear_key_buffer
+	cmp	al, 'r'
+	jne	wait_for_r
+	mov	word [snake_pos], 0x0F0F
+	mov	word [snake_body_pos], 0
+	mov	word [score], 0
+	jmp	main
 
 ; SCREEN FUNCTIONS ------------------------------------------------------------
 clear_screen:
 	mov	ax, 0x0700	; clear entire window (ah 0x07, al 0x00)
-	mov	bh, 0x0D	; purple on black
+	mov	bh, 0x0C	; light red on black
 	xor	cx, cx		; top left = (0,0)
 	mov	dx, 0x1950	; bottom right = (25, 80)
 	int	0x10
-	mov	dx, 0x0000 	; move cursor to 0,0
+	xor	dx, dx		; move cursor to 0,0
 	call	move_cursor
 	ret
 
@@ -200,7 +196,7 @@ push_digits:			; print int in ax
 	div	bx		; divide by 10
 	push	dx
 	test	ax, ax
-	je	pop_and_print_digits
+	jz	pop_and_print_digits
 	xor	dx, dx
 	jmp 	push_digits
 
@@ -226,7 +222,9 @@ rand:				; random number between 0 and bx. result in dx
 	ret
 	
 ; CONSTANTS -------------------------------------------------------------------
-game_over_msg db 'Game over! press key to retry.', 0
+retry_msg db '! press r to retry.', 0
+hit_selv_msg db 'You hit yourself', 0
+hit_wall_msg db 'You hit the wall', 0
 score_msg db 'Score: ', 0
 
 ; VARIABLES -------------------------------------------------------------------
