@@ -1,4 +1,3 @@
-main:
 	mov	ax, 0x07C0 
 	mov	ds, ax		; set DS to the point where code is loaded
 	mov	ah, 0x01
@@ -9,7 +8,7 @@ main:
 	int	0x16		; increase delay before keybort repeat
 
 game_loop:
-	call	clear_screen
+	call	clear_screen	; clear the screen
 	push	word [snake_pos] ; save snake head position for later
 	mov	ah, 0x01	; check if key available
 	int	0x16
@@ -125,8 +124,8 @@ no_collision:
 	mov	[food_pos], dx	; save the position of the new random food
 	mov	byte [grow_snake_flag], 1 ; make sure snake grows
 game_loop_continued:
-	mov	cx, 0x0002	; Sleep for 0,15 seconds
-	mov	dx, 0x49F0	; Sleep for 0,15 seconds
+	mov	cx, 0x0002	; Sleep for 0,15 seconds (cx:dx)
+	mov	dx, 0x49F0	; 0x000249F0 = 150000
 	mov	ah, 0x86
 	int	0x15		; Sleep
 	jmp	game_loop	; loop
