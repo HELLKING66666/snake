@@ -27,3 +27,6 @@ make run
 make
 sudo dd if=snake.bin of=/dev/sdb count=1 bs=512
 ~~~
+
+## Screenshot of the program running in qemu
+![screenshot](screenshot.png)
