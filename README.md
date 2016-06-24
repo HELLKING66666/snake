@@ -15,12 +15,13 @@ make
 
 To run the program, you will need to store it on a drive, or use qemu as an emulator.
 
-*running using qemu*
+*Running using qemu*
 ~~~
 make run
 ~~~
 
-*WARNING: if you don't know those commands, dont perform them* \
+*WARNING: if you don't know those commands, dont perform them*
+
 *storing it on usb at /dev/sdb*
 ~~~
 make
