@@ -1,6 +1,9 @@
 main:
 	mov	ax, 0x07C0 
 	mov	ds, ax		; set DS to the point where code is loaded
+	mov	ah, 0x01
+	mov	cx, 0x2000
+	int 	0x10		; clear cursor blinking
 
 	call	clear_screen
 game_loop:
@@ -223,7 +226,7 @@ rand:				; random number between 0 and bx. result in dx
 	ret
 	
 ; CONSTANTS -------------------------------------------------------------------
-game_over_msg db 'Game over! press r to retry.', 0
+game_over_msg db 'Game over! press key to retry.', 0
 score_msg db 'Score: ', 0
 
 ; VARIABLES -------------------------------------------------------------------

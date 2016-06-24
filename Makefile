@@ -7,7 +7,7 @@ snake.img: snake.bin
 	touch run
 
 run: snake.img
-	qemu-system-x86_64 -no-fd-bootchk -fda snake.bin
+	qemu-system-x86_64 -fda snake.bin
 
 clean:
 	rm *.bin *.img run
