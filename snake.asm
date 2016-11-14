@@ -175,8 +175,8 @@ move_cursor:
 
 print_string:			; print the string pointed to in si
 	lodsb			; load next byte from si
-	or	al, al		; check if byte is 0
-	jz	done		; if 0, quit
+	test	al, al		; check if high bit is set (end of string)
+	js	done		; if high bit was set (negative value), quit
 	call	print_char	; print the char
 	jmp	print_string	; loop
 	ret
@@ -220,11 +220,12 @@ rand:				; random number between 1 and bx. result in dx
 	inc	dx
 	ret
 	
-; MESSAGES --------------------------------------------------------------------
-retry_msg db '! press r to retry', 0
-hit_selv_msg db 'You hit yourself', 0
-hit_wall_msg db 'You hit the wall', 0
-score_msg db 'Score: ', 0
+; MESSAGES (Encoded as 7-bit strings. Last byte is an ascii value with its
+; high bit set ----------------------------------------------------------------
+retry_msg db '! press r to retr', 0xF9 ; y
+hit_selv_msg db 'You hit yoursel', 0xE6 ; f
+hit_wall_msg db 'You hit the wal', 0xEC ; l
+score_msg db 'Score:', 0xA0 ; space
 
 ; VARIABLES -------------------------------------------------------------------
 screen_width db 0x00
