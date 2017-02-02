@@ -176,12 +176,13 @@ move_cursor:
 print_string:			; print the string pointed to in si
 	lodsb			; load next byte from si
 	test	al, al		; check if high bit is set (end of string)
-	js	done		; if high bit was set (negative value), quit
+	js	print_char	; if high bit was set (negative value), print the last char
 	call	print_char	; print the char
 	jmp	print_string	; loop
 	ret
 
 print_char:			; print the char at al
+	and	al, 0x7F	; unset the high bit
 	mov	ah, 0x0E
 	int	0x10
 	ret
@@ -206,11 +207,8 @@ pop_and_print_digits:
 	cmp	sp, bp		; is the stack pointer is at where we began?
 	jne	pop_and_print_digits ; if not, loop
 	pop	bp		; if yes, restore bp
-
+	ret 
 ; UTILITY FUNCTIONS -----------------------------------------------------------
-done:
-	ret
-
 rand:				; random number between 1 and bx. result in dx
 	mov	ah, 0x00
 	int	0x1A		; get clock ticks since midnight
