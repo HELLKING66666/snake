@@ -6,9 +6,6 @@
 	mov	ax, 0x0305
 	mov	bx, 0x031F
 	int	0x16		; increase delay before keybort repeat
-	mov	ah, 0x0F
-	int	0x10		; get the current number of screen cols.
-	mov	[screen_width], ah ; save it
 
 game_loop:
 	call	clear_screen	; clear the screen
@@ -97,7 +94,7 @@ check_collisions:
 	jge	game_over_hit_wall ; if yes, jump
 	cmp	bh, 0		; check if we are too far up
 	jl	game_over_hit_wall ; if yes, jump
-	cmp	bl, [screen_width] ; check if we are too far to the right
+	cmp	bl, 80 ; check if we are too far to the right
 	jge	game_over_hit_wall ; if yes, jump
 	cmp	bl, 0		; check if we are too far to the left
 	jl	game_over_hit_wall ; if yes, jump
@@ -117,8 +114,7 @@ no_collision:
 	mov	bx, 24		; set max value for random call (y-val - 1)
 	call	rand		; generate random value
 	push	dx		; save it on the stack
-	mov	bx, [screen_width] ; set max value for random call
-	dec	bx		; decrement value to prevent food on the edge
+	mov	bx, 78 ; set max value for random call
 	call	rand		; generate random value
 	pop	cx		; restore old random into cx
 	mov	dh, cl		; move old value into high bits of new
@@ -162,8 +158,7 @@ clear_screen:
 	mov	ax, 0x0700	; clear entire window (ah 0x07, al 0x00)
 	mov	bh, 0x0C	; light red on black
 	xor	cx, cx		; top left = (0,0)
-	mov	dh, 0x19	; bottom right = (25, 80)
-	mov	dl, [screen_width] 
+	mov	dh, 0x1950	; bottom right = (25, 80)
 	int	0x10
 	xor	dx, dx		; set dx to 0x0000
 	call	move_cursor	; move cursor
@@ -228,7 +223,6 @@ wall_msg db 'the wal', 0xEC ; l
 score_msg db 'Score:', 0xA0 ; space
 
 ; VARIABLES -------------------------------------------------------------------
-screen_width db 0x00
 grow_snake_flag db 0
 food_pos dw 0x0D0D
 score dw 1
