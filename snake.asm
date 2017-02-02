@@ -104,11 +104,10 @@ check_collisions:
 	mov	si, snake_body_pos ; prepare to check for self-collision
 check_collisions_self:
 	lodsw			; load position of snake body, and increment si
-	or	ax, ax		; check if position is 0x0000
-	je	no_collision	; if it is, we are done checking and jump
 	cmp	ax, bx		; check if head position = body position
 	je	game_over_hit_self ; if it is, jump
-	jmp	check_collisions_self ; loop
+	or	ax, ax		; check if position is 0x0000 (we are done searching)
+	jne	check_collisions_self ; if not, loop
 
 no_collision:
 	mov	ax, [snake_pos]	; load snake head position into ax
