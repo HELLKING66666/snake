@@ -133,14 +133,17 @@ game_loop_continued:
 	jmp	game_loop	; loop
 
 game_over_hit_self:
-	mov	si, hit_selv_msg
+	push 	self_msg
 	jmp	game_over
 
 game_over_hit_wall:
-	mov	si, hit_wall_msg
+	push	wall_msg
 
 game_over:
 	call	clear_screen
+	mov	si, hit_msg
+	call	print_string
+	pop	si
 	call	print_string
 	mov	si, retry_msg
 	call	print_string
@@ -173,13 +176,12 @@ move_cursor:
 	int 	0x10
 	ret
 
+print_string_loop:
+	call print_char
 print_string:			; print the string pointed to in si
 	lodsb			; load next byte from si
 	test	al, al		; check if high bit is set (end of string)
-	js	print_char	; if high bit was set (negative value), print the last char
-	call	print_char	; print the char
-	jmp	print_string	; loop
-	ret
+	jns	print_string_loop	; loop if high bit was not set
 
 print_char:			; print the char at al
 	and	al, 0x7F	; unset the high bit
@@ -221,8 +223,9 @@ rand:				; random number between 1 and bx. result in dx
 ; MESSAGES (Encoded as 7-bit strings. Last byte is an ascii value with its
 ; high bit set ----------------------------------------------------------------
 retry_msg db '! press r to retr', 0xF9 ; y
-hit_selv_msg db 'You hit yoursel', 0xE6 ; f
-hit_wall_msg db 'You hit the wal', 0xEC ; l
+hit_msg db 'You hit', 0xA0 ; space
+self_msg db 'yoursel', 0xE6 ; f
+wall_msg db 'the wal', 0xEC ; l
 score_msg db 'Score:', 0xA0 ; space
 
 ; VARIABLES -------------------------------------------------------------------
