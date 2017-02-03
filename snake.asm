@@ -51,15 +51,13 @@ update_body:
 	mov	ax, bx		; save bx into ax for next loop
 	jmp	update_body	; loop
 done_update:
-	cmp	byte [grow_snake_flag], 1 ; if the snake should grow
-	je	grow_snake	; jump to grow_snake
-	mov	word [si], 0x0000 ; add a 0x0000 after the body
-	jmp	print_stuff	; move on
-grow_snake:
+	cmp	byte [grow_snake_flag], 1 ; snake should grow?
+	jne	add_zero_snake	; if not: jump to add_zero_snake
 	mov	word [si], ax	; save the last element at the next position
-	mov	word [si+2], 0x0000 ; add 0x0000 after that
 	mov	byte [grow_snake_flag], 0 ; disable grow_snake_flag
-
+	add	si, 2		; increment si by 2
+add_zero_snake:
+	mov	word [si], 0x0000
 print_stuff:
 	xor	dx, dx		; set pos to 0x0000
 	call	move_cursor	; move cursor
