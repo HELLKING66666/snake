@@ -19,26 +19,24 @@ game_loop:
 done_clear:
 	mov	al, [last_move]	; no keys, so we use the last one
 update_snakepos:
-	cmp	al, 'w'	
-	je	up
 	cmp	al, 'a'
+	je	left
+	cmp	al, 's'
 	je	down
 	cmp	al, 'd'
 	je	right
-	cmp	al, 's'
-	je	left
-	mov	al, [last_move] ; the entered not valid, use the last one
-	jmp 	update_snakepos ; try again
+	cmp	al, 'w'
+	jne	done_clear
 up:
 	sub	word [snake_pos], 0x0100 ; addjust position
 	jmp	move_done		 ; jump away
-down:
+left:
 	sub	word [snake_pos], 0x0001 ; addjust position
 	jmp	move_done		 ; jump away
 right:
 	add	word [snake_pos], 0x0001 ; addjust position
 	jmp	move_done		 ; jump away
-left:
+down:
 	add	word [snake_pos], 0x0100 ; addjust position
 move_done:
 	mov	[last_move], al	; save the direction
@@ -158,7 +156,7 @@ clear_screen:
 	mov	ax, 0x0700	; clear entire window (ah 0x07, al 0x00)
 	mov	bh, 0x0C	; light red on black
 	xor	cx, cx		; top left = (0,0)
-	mov	dh, 0x1950	; bottom right = (25, 80)
+	mov	dx, 0x1950	; bottom right = (25, 80)
 	int	0x10
 	xor	dx, dx		; set dx to 0x0000
 	call	move_cursor	; move cursor
