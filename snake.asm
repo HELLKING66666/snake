@@ -28,16 +28,16 @@ update_snakepos:
 	cmp	al, 'w'
 	jne	done_clear
 up:
-	sub	word [snake_pos], 0x0100 ; addjust position
+	dec	byte [snake_y_pos]
 	jmp	move_done		 ; jump away
 left:
-	sub	word [snake_pos], 0x0001 ; addjust position
+	dec	byte [snake_x_pos]
 	jmp	move_done		 ; jump away
 right:
-	add	word [snake_pos], 0x0001 ; addjust position
+	inc	byte [snake_x_pos]
 	jmp	move_done		 ; jump away
 down:
-	add	word [snake_pos], 0x0100 ; addjust position
+	inc	word [snake_y_pos]
 move_done:
 	mov	[last_move], al	; save the direction
 	mov	si, snake_body_pos ; prepare body shift
@@ -144,8 +144,8 @@ wait_for_r:
 	cmp	al, 'r'
 	jne	wait_for_r
 	mov	word [snake_pos], 0x0F0F
-	mov	word [snake_body_pos], 0
-	mov	word [score], 0
+	and	word [snake_body_pos], 0
+	and	word [score], 0
 	mov	byte [last_move], 'd'
 	jmp	game_loop
 
@@ -222,7 +222,9 @@ grow_snake_flag db 0
 food_pos dw 0x0D0D
 score dw 1
 last_move db 'd'
-snake_pos dw 0x0F0F
+snake_pos:
+	snake_x_pos db 0x0F
+	snake_y_pos db 0x0F
 snake_body_pos dw 0x0000
 
 ; PADDING AND BOOT SIGNATURE --------------------------------------------------
