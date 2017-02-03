@@ -189,8 +189,7 @@ push_digits:
 	div	bx		; divide by 10
 	push	dx		; store remainder on stack
 	test	ax, ax		; check if quotient is 0
-	jz	pop_and_print_digits ; if it is, print the digits on the stack
-	jmp 	push_digits	; if not, loop
+	jnz 	push_digits	; if not, loop
 
 pop_and_print_digits:
 	pop	ax		; get first digit from stack
