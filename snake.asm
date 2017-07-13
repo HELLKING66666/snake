@@ -1,23 +1,46 @@
-	mov	ax, 0x07C0 
-	mov	ds, ax		; set DS to the point where code is loaded
-	mov	ah, 0x01
-	mov	cx, 0x2000
-	int 	0x10		; clear cursor blinking
-	mov	ax, 0x0305
-	mov	bx, 0x031F
-	int	0x16		; increase delay before keybort repeat
+	mov	ax, 0x07C0h
+	mov	ds, ax		; 加载ds到ax
+	mov	ah, 0x01h
+	mov	cx, 0x2000h
+; 环境设置
+	int 0x10h		; 利用10号中断停止光标闪烁
+	mov	ax, 0x0305h
+	mov	bx, 0x031Fh
+	int	0x16h		; 增加重复键入延迟
 
+
+; ------------------------------------------------------------------------
+;   定义消息,变量以及变量初始化
+; ------------------------------------------------------------------------
+; 消息MESSAGES (Encoded as 7-bit strings. Last byte is an ascii value with its
+retry_msg db '! press r to retr', 0xF9 ; y
+hit_msg db 'You hit', 0xA0 ; space
+self_msg db 'yoursel', 0xE6 ; f
+wall_msg db 'the wal', 0xEC ; l
+score_msg db 'Score:', 0xA0 ; space
+
+; 变量以及初始化
+grow_snake_flag db 0
+food_pos dw 0x0D0D
+score dw 1
+last_move db 'd'
+snake_pos:
+	snake_x_pos db 0x0F
+	snake_y_pos db 0x0F
+snake_body_pos dw 0x0000
+
+;
 game_loop:
-	call	clear_screen	; clear the screen
-	push	word [snake_pos] ; save snake head position for later
-	mov	ah, 0x01	; check if key available
-	int	0x16
-	jz	done_clear	; if not, move on
-	mov	ah, 0x00	; if the was a key, remove it from buffer
-	int	0x16
-	jmp	update_snakepos
-done_clear:
-	mov	al, [last_move]	; no keys, so we use the last one
+	call cls ; 清屏
+	push word [snake_pos] ; 讲蛇头位置压栈保存
+	mov	ah, 0x01h	; 调用功能号为01的16中断判断是否有按键信号
+	int	0x16h
+	jz keep_going	; 没有按键,则跳转到keep_going,继续移动
+	mov	ah, 0x00h	; 有则从缓存读取按键
+	int	0x16h
+	jmp	update_snakepos ; 更新蛇头位置
+keep_going:
+	mov	al, [last_move]	; 没有按键,继续以最后方向移动
 update_snakepos:
 	cmp	al, 'a'
 	je	left
@@ -26,24 +49,24 @@ update_snakepos:
 	cmp	al, 'd'
 	je	right
 	cmp	al, 'w'
-	jne	done_clear
+	jne	keep_going
 up:
 	dec	byte [snake_y_pos]
-	jmp	move_done		 ; jump away
+	jmp	move_done ; 蛇头移动完毕后跳转到move_done
 left:
 	dec	byte [snake_x_pos]
-	jmp	move_done		 ; jump away
+	jmp	move_done		 ; 蛇头移动完毕后跳转到move_done
 right:
 	inc	byte [snake_x_pos]
-	jmp	move_done		 ; jump away
+	jmp	move_done		 ; 蛇头移动完毕后跳转到move_done
 down:
 	inc	word [snake_y_pos]
 move_done:
-	mov	[last_move], al	; save the direction
-	mov	si, snake_body_pos ; prepare body shift
-	pop	ax 		; restore read position into ax for body shift
+	mov	[last_move], al	; 保存最后移动方向
+	mov	si, snake_body_pos ; 蛇身储存在寄存器si,其中si为源变址寄存器
+	pop	ax 		; 原来的蛇头位置出栈以让蛇身移动
 update_body:
-	mov	bx, [si]	; get element of body into bx
+	mov	bx, [si]	; 将蛇身
 	test	bx, bx		; check if zero (not a part of the body)
 	jz	done_update	; if zero, done. Otherwise
 	mov	[si], ax	; move the data from ax, into current position
@@ -131,7 +154,7 @@ game_over_hit_wall:
 	push	wall_msg
 
 game_over:
-	call	clear_screen
+	call	cls
 	mov	si, hit_msg
 	call	print_string
 	pop	si
@@ -150,7 +173,7 @@ wait_for_r:
 	jmp	game_loop
 
 ; SCREEN FUNCTIONS ------------------------------------------------------------
-clear_screen:
+cls:
 	mov	ax, 0x0700	; clear entire window (ah 0x07, al 0x00)
 	mov	bh, 0x0C	; light red on black
 	xor	cx, cx		; top left = (0,0)
@@ -162,7 +185,7 @@ clear_screen:
 
 move_cursor:
 	mov	ah, 0x02	; move to (dl, dh)
-	xor	bh, bh		; page 0	
+	xor	bh, bh		; page 0
 	int 	0x10
 	ret
 
@@ -198,7 +221,7 @@ pop_and_print_digits:
 	cmp	sp, bp		; is the stack pointer is at where we began?
 	jne	pop_and_print_digits ; if not, loop
 	pop	bp		; if yes, restore bp
-	ret 
+	ret
 ; UTILITY FUNCTIONS -----------------------------------------------------------
 rand:				; random number between 1 and bx. result in dx
 	mov	ah, 0x00
@@ -208,24 +231,7 @@ rand:				; random number between 1 and bx. result in dx
 	div	bx		; divide ax by bx to get remainder in dx
 	inc	dx
 	ret
-	
-; MESSAGES (Encoded as 7-bit strings. Last byte is an ascii value with its
-; high bit set ----------------------------------------------------------------
-retry_msg db '! press r to retr', 0xF9 ; y
-hit_msg db 'You hit', 0xA0 ; space
-self_msg db 'yoursel', 0xE6 ; f
-wall_msg db 'the wal', 0xEC ; l
-score_msg db 'Score:', 0xA0 ; space
 
-; VARIABLES -------------------------------------------------------------------
-grow_snake_flag db 0
-food_pos dw 0x0D0D
-score dw 1
-last_move db 'd'
-snake_pos:
-	snake_x_pos db 0x0F
-	snake_y_pos db 0x0F
-snake_body_pos dw 0x0000
 
 ; PADDING AND BOOT SIGNATURE --------------------------------------------------
 times 510-($-$$) db 0
