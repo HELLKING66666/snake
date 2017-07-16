@@ -1,13 +1,9 @@
-snake.bin: snake.asm
-	nasm snake.asm -f bin -o snake.bin
-
-snake.img: snake.bin
-	dd if=/dev/null of=snake.img count=1 bs=512
-	dd if=snake.bin of=snake.img conv=notrunc
-	touch run
-
-run: snake.img
-	qemu-system-x86_64 -fda snake.bin
+run: MSDOS622.img
+	nasm snake.asm -o snake.com
+	mount MSDOS622.img /mnt
+	cp -f snake.com /mnt
+	umount /mnt
+	qemu-system-x86_64 -fda MSDOS622.img
 
 clean:
-	rm *.bin *.img run
+	rm *.bin *.img run *.com

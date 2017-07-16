@@ -236,12 +236,14 @@ pop_and_print_digits:
 ;  函数
 ;--------------------------------------------------------------------
 ; 随机函数， 利用功能号为10的1A中断（）产生1至bx的随机数 -> dx
+; 参考http://webpages.charter.net/danrollins/techhelp/0245.HTM
+;
 rand:
     mov	ah, 0x00
-    int	0x1A	   	; get clock ticks since midnight
-    mov	ax, dx		; move lower bits into ax for division
-    xor	dx, dx		; clear dx
-    div	bx		; divide ax by bx to get remainder in dx
+    int	0x1A
+    mov	ax, dx
+    xor	dx, dx
+    div	bx
     inc	dx
     ret
 
