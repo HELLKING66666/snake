@@ -14,27 +14,6 @@ int	0x16 ; 增加重复键入延迟
 call game_loop
 
 
-;------------------------------------------------------------------------
-;  定义消息,变量以及变量初始化
-;------------------------------------------------------------------------
-Scostr db 'Score: '
-Scostrlen equ $ - Scostr
-HitSelfstr db 'You hit yourself ! Press r to retry'
-HitSelfstrlen equ $ - HitSelfstr
-HitWallstr db 'You hit the wall ! Press r to retry'
-HitWallstrlen equ $ - HitWallstr
-
-; 变量以及初始化
-grow_snake_flag db 0
-food_pos dw 0x0D0D
-score dw 0
-last_move db 'd'
-snake_pos:
-    snake_x_pos db 0x0F
-    snake_y_pos db 0x0F
-    snake_body_pos dw 0x0000
-
-
 game_loop:
     call cls ; 清屏
     push word [snake_pos] ; 讲蛇头位置压栈保存
@@ -265,3 +244,24 @@ rand:
     div	bx		; divide ax by bx to get remainder in dx
     inc	dx
     ret
+
+
+;------------------------------------------------------------------------
+;  定义消息,变量以及变量初始化
+;------------------------------------------------------------------------
+Scostr db 'Score: '
+Scostrlen equ $ - Scostr
+HitSelfstr db 'You hit yourself ! Press r to retry'
+HitSelfstrlen equ $ - HitSelfstr
+HitWallstr db 'You hit the wall ! Press r to retry'
+HitWallstrlen equ $ - HitWallstr
+
+; 变量以及初始化
+grow_snake_flag db 0
+food_pos dw 0x0D0D
+score dw 0
+last_move db 'd'
+snake_pos:
+    snake_x_pos db 0x0F
+    snake_y_pos db 0x0F
+    snake_body_pos dw 0x0000
